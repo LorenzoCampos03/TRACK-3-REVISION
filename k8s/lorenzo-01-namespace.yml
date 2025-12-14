@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lorenzo-01-namespace
+  labels:
+    name: lorenzo-01-namespace
+    environment: development

@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # Servicio MySQL (solo debe estar corriendo, la app usa H2)
+  mysql:
+    image: mysql:8.0
+    container_name: student-mysql
+    restart: always
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: studentsdb
+      MYSQL_USER: student_user
+      MYSQL_PASSWORD: student_pass
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - student-network
+
+  # Servicio Aplicación Spring Boot (usa H2)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: lorenzo01/ht-01-lorenzo-campos:latest
+    container_name: student-app
+    restart: always
+    ports:
+      - "${APP_PORT:-8091}:${CONTAINER_PORT:-8091}"
+    environment:
+      SERVER_PORT: ${CONTAINER_PORT:-8091}
+    networks:
+      - student-network
+
+  # Servicio Nginx (Proxy reverso)
+  nginx:
+    image: nginx:alpine
+    container_name: student-nginx
+    restart: always
+    ports:
+      - "${NGINX_PORT:-8092}:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app
+    networks:
+      - student-network
+
+networks:
+  student-network:
+    driver: bridge
+
+volumes:
+  mysql_data:

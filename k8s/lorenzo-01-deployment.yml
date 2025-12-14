@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lorenzo-01-deployment
+  namespace: lorenzo-01-namespace
+  labels:
+    app: student-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: student-api
+  template:
+    metadata:
+      labels:
+        app: student-api
+    spec:
+      containers:
+      - name: student-app
+        image: lorenzo01/ht-01-lorenzo-campos:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8888
+          name: http
+        env:
+        - name: SERVER_PORT
+          valueFrom:
+            secretKeyRef:
+              name: lorenzo-01-secret
+              key: SERVER_PORT
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /v1/api/student
+            port: 8888
+          initialDelaySeconds: 60
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /v1/api/student
+            port: 8888
+          initialDelaySeconds: 45
+          periodSeconds: 5
